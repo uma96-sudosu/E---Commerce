@@ -1,0 +1,51 @@
+pipeline {
+  agent any
+
+  stages {
+
+      stage('1-pull code') {
+          steps {
+                git 'https://github.com/uma96-sudosu/one.git'
+                }
+          }
+
+      stage('2-Build') {
+            steps {
+                    sh 'mvn compile'
+                  }  
+            }
+
+      stage('3-Test') {
+          steps {
+                  sh 'mvn test'
+                }    
+            } 
+
+       stage('4-package') {
+            steps {
+                    sh 'mvn package'
+                  }
+              }
+
+        stage('5-Deploy') {
+            steps {
+                  deploy adapters: [tomcat9(
+                        credentialsId: 'tomcat',
+                    url: 'http://54.197.181.140:8080'
+                )],
+                contextPath: '/uma',
+                war: '**/*.war'
+            }
+        }
+        
+    }
+
+    post {                              // Post build actions
+        success {
+            echo '✅ Deployment Successful!'
+        }
+        failure {
+            echo '❌ Build Failed! Check logs.'
+        }
+    }
+}
